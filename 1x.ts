@@ -1,13 +1,4 @@
 import * as fs from 'fs';
-import * as readline from 'readline';
-
-async function eachLine(filePath: string, callback: Function): Promise<void> {
-    const input = fs.createReadStream(filePath);
-    const rl = readline.createInterface({ input });
-    for await (const line of rl) {
-        callback(line);
-    }
-}
 
 function reverseString(str: string): string {
     return str.split('').reverse().join('');
@@ -28,12 +19,19 @@ const numbersMapping: Record<string, number> = numbers.reduce((obj: Record<strin
 for (let i = 0; i <= 9; i++) { numbersMapping[i.toString()] = i }
 
 let sum = 0;
-eachLine(
-    filePath, (line: string) => {
+
+function dbg(value:any) {
+    console.log(value);
+    return value
+}
+
+fs.promises.readFile(filePath, 'utf-8')
+    .then((content) => content.split("\n").slice(0, -1))
+    .then((lines) => lines.forEach((line: string) => {
         let firstDigit = numbersMapping[line.match(matcher)![0]];
         let lastDigit = numbersMapping[reverseString(reverseString(line).match(reverseMatcher)![0])];
         let inc = firstDigit * 10 + lastDigit;
         sum += inc
-    }
-).catch(console.error)
-    .then(() => console.log(sum));
+    }))
+    .then(() => console.log(sum))
+    .catch(console.error);
