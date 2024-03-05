@@ -1,4 +1,5 @@
 import * as fs from 'fs';
+import _ from 'lodash';
 
 type Field = string[];
 function isChar(field: Field, x: number, y: number): boolean {
@@ -9,7 +10,7 @@ function isChar(field: Field, x: number, y: number): boolean {
 }
 type NumberWithPos = [string, number, number];
 
-function getNumbers(field:Field): NumberWithPos[] {
+function getNumbers(field: Field): NumberWithPos[] {
   const regex = /\d+/g;
   const numbers: NumberWithPos[] = [];
 
@@ -22,23 +23,19 @@ function getNumbers(field:Field): NumberWithPos[] {
   return numbers
 }
 
-function generateRange(start: number, n: number): number[] {
-  return Array.from({ length: n }, (_, i) => start + i);
-}
-
 fs.promises.readFile(process.argv[2], 'utf-8')
   .then((content) => content.split("\n").slice(0, -1))
-  .then((field: Field) => {
-    const numbers = getNumbers(field);
-    return numbers.filter(([num, x, y]) =>
-      isChar(field, x-1, y)
-      || isChar(field, x+num.length, y)
-      || generateRange(x-1, num.length+2).some(
-           (x2) => isChar(field, x2, y-1) || isChar(field, x2, y+1)
-         )
-    )
-    .map(([num]) => parseInt(num))
-    .reduce((sum, n) => sum + n)
-  })
+  .then((field: Field) =>
+    getNumbers(field)
+      .filter(([num, x, y]) =>
+        isChar(field, x - 1, y)
+        || isChar(field, x + num.length, y)
+        || _.range(x - 1, x + num.length + 1).some(
+          (x2) => isChar(field, x2, y - 1) || isChar(field, x2, y + 1)
+        )
+      )
+      .map(([num]) => parseInt(num))
+      .reduce((sum, n) => sum + n)
+  )
   .then(console.log)
   .catch(console.error);
