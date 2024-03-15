@@ -11,7 +11,7 @@ function parseLine(line: string): [number, number[], number[]] {
   return [cardNum, winning, gotten]
 }
 
-/** doubles points for each additional counted item
+/**
     points(0) // => 0
     points(1) // => 1
     points(3) // => 4
@@ -33,10 +33,12 @@ function linePoints(line: string): number {
   return points(count)
 }
 
-fs.promises.readFile(process.argv[2], 'utf-8')
-  .then((content) => content.split("\n").slice(0, -1))
-  .then((lines) =>
-    lines.map(linePoints).reduce((sum, n) => sum + n, 0)
-  )
-  .then(console.log)
-  .catch(console.error)
+if (require.main === module) {
+  fs.promises.readFile(process.argv[2], 'utf-8')
+    .then((content) => content.split("\n").slice(0, -1))
+    .then((lines) =>
+      lines.map(linePoints).reduce((sum, n) => sum + n, 0)
+    )
+    .then(console.log)
+    .catch(console.error)
+}

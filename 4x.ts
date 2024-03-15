@@ -12,18 +12,20 @@ function parseLine(line: string): [number, number] {
   return [cardNum, wins]
 }
 
-fs.promises.readFile(process.argv[2], 'utf-8')
-  .then((content) => content.split("\n").slice(0, -1))
-  .then((lines) => {
-    let cardWins: number[] = [];
-    lines.map(parseLine).forEach(([cardNum, wins]) => cardWins[cardNum - 1] = wins);
-    let cardCounts: number[] = Array(cardWins.length).fill(1);
-    for (let i = 0; i < cardWins.length; i++) {
-      for (let j = i+1; j <= i + cardWins[i]; j++ ) {
-        cardCounts[j] += cardCounts[i]
+if (require.main === module) {
+  fs.promises.readFile(process.argv[2], 'utf-8')
+    .then((content) => content.split("\n").slice(0, -1))
+    .then((lines) => {
+      let cardWins: number[] = [];
+      lines.map(parseLine).forEach(([cardNum, wins]) => cardWins[cardNum - 1] = wins);
+      let cardCounts: number[] = Array(cardWins.length).fill(1);
+      for (let i = 0; i < cardWins.length; i++) {
+        for (let j = i+1; j <= i + cardWins[i]; j++ ) {
+          cardCounts[j] += cardCounts[i]
+        }
       }
-    }
-    return cardCounts.reduce((sum, n) => sum + n)
-  })
-  .then(console.log)
-  .catch(console.error)
+      return cardCounts.reduce((sum, n) => sum + n)
+    })
+    .then(console.log)
+    .catch(console.error)
+}
