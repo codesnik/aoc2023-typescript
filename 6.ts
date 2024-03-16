@@ -5,17 +5,17 @@ function parse(line) {
   return line.split(/\s+/).slice(1).map(n => parseInt(n))
 }
 
-function distance(time, push) {
-  return push * (time-push)
-}
-
-// naive solution
+/**
+  ways(7, 9) //=> 4
+  ways(71530, 940200) //=> 71503
+  ways(48989083, 390110311121360) //=> 28973936
+*/
 function ways(time, record) {
-  let cnt = 0
-  for (let push = 1; push < time; push++) {
-    if (distance(time, push) > record) cnt++;
-  }
-  return cnt
+  // push*push - time*push + record < 0
+  let d = Math.sqrt(time*time - 4*record);
+  let root1 = (time - d)/2;
+  let root2 = (time + d)/2;
+  return Math.min(time, Math.floor(root2)) - Math.max(0, Math.ceil(root1)) + 1
 }
 
 if (require.main === module) {
