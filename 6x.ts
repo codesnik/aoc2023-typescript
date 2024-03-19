@@ -6,15 +6,19 @@ function parse(line) {
 
 /**
   ways(7, 9) //=> 4
+  ways(15, 40) //=> 8
+  ways(30, 200) // => 9
   ways(71530, 940200) //=> 71503
   ways(48989083, 390110311121360) //=> 28973936
 */
 function ways(time, record) {
-  // push*push - time*push + record < 0
   let d = Math.sqrt(time*time - 4*record);
   let root1 = (time - d)/2;
   let root2 = (time + d)/2;
-  return Math.min(time, Math.floor(root2)) - Math.max(0, Math.ceil(root1)) + 1
+  // we shouldn't include root if it's integer
+  let rounded_root1 = Math.max(1, Math.floor(root1) + 1)
+  let rounded_root2 = Math.min(time - 1, Math.ceil(root2) - 1)
+  return rounded_root2 - rounded_root1 + 1
 }
 
 if (require.main === module) {
