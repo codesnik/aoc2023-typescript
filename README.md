@@ -6,3 +6,7 @@ for tests
 
     doctest-ts --jest *.ts
     npm t
+
+to check a solution:
+
+    ts-node 8x.ts path/to/input.txt
