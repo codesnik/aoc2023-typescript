@@ -12,6 +12,6 @@
     "typescript": "^5.4.2"
   },
   "scripts": {
-    "test": "jest --testMatch **/*.doctest.ts"
+    "test": "jest"
   }
 }
