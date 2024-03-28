@@ -20,7 +20,7 @@ function findHorizontalReflection(pattern: string[]): number {
   doesReflect(["bbb", "aaa", "aaa"], 2) //=> true
   doesReflect(["bbb", "aaa", "aaa", "ccc"], 2) //=> false
 */
-function doesReflect(pattern, point): boolean {
+function doesReflect(pattern: string[], point: number): boolean {
   return mirrorIndexes(pattern.length, point).every(([x, y]) => pattern[x] == pattern[y])
 }
 
