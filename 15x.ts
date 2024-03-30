@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 
-type Box = [string, number][];
+type Box = Map<string, number>;
 
 /**
  hash("HASH") //=> 52
@@ -15,30 +15,16 @@ function hash(str: string): number {
   return hash;
 }
 
-function removeLens(box: Box, label:string): void {
-  let idx = box.findIndex(cell => cell[0] == label);
-  if (idx != -1) box.splice(idx, 1)
-}
-
-function addLens(box: Box, label:string, lens: number): void {
-  let idx = box.findIndex(cell => cell[0] == label);
-  if (idx != -1) {
-    box[idx] = [label, lens];
-  } else {
-    box.push([label, lens]);
-  }
-}
-
 function doCommand(boxes: Box[], command: string): void {
   let [_matched, label, op, lensStr] = command.match(/(\w+)([=-])(\d?)/);
   let boxIdx = hash(label);
 
   if (op == "-") {
-    removeLens(boxes[boxIdx], label)
+    boxes[boxIdx].delete(label)
   }
   else {
     let lens = parseInt(lensStr);
-    addLens(boxes[boxIdx], label, lens)
+    boxes[boxIdx].set(label, lens);
   }
 }
 
@@ -47,12 +33,14 @@ function sum(array: number[]): number {
 }
 
 /**
-  let boxes = Array.from({length: 256}, () => []);
-  boxes[0] = [["rn", 1], ["cm", 2]]; boxes[3] = [["ot", 7], ["ab", 5], ["pc", 6]]
+  let boxes = Array.from({length: 256}, () => new Map());
+  boxes[0] = new Map([["rn", 1], ["cm", 2]]); boxes[3] = new Map([["ot", 7], ["ab", 5], ["pc", 6]])
   sumBoxes(boxes) //=> 145
 */
 function sumBoxes(boxes: Box[]): number {
-  return sum(boxes.map((box, boxIdx) => (boxIdx + 1) * sum(box.map((lens, lensIdx) => (lensIdx + 1) * lens[1]))))
+  return sum(boxes.map(
+    (box, boxIdx) =>
+       (boxIdx + 1) * sum(Array.from(box.values()).map((lens, lensIdx) => (lensIdx + 1) * lens))))
 }
 
 if (require.main === module) {
@@ -60,7 +48,7 @@ if (require.main === module) {
     .then((content) => content.slice(0, -1).split(","))
     .then(commands => {
      // create array fo 256 empty arrays
-      let boxes: Box[] = Array.from({length: 256}, () => []);
+      let boxes: Box[] = Array.from({length: 256}, () => new Map() as Box);
       commands.forEach(command => doCommand(boxes, command))
       return boxes
     })
