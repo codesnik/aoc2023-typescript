@@ -1,12 +1,17 @@
 import * as fs from 'fs';
 
 type Map = string[];
-type Dir = 0|1|2|3;
+enum Dir {
+  up = 1,
+  right = 2,
+  down = 4,
+  left = 8,
+};
 type Ray = [number, number, Dir];
-type Energized = Record<string, Record<string, boolean>>; 
+type Energized = Record<string, number>;
 
 /**
-  let rays: Ray[] = [[ -1, 1, 0 ], [ 1, 1, 2 ]];
+  let rays: Ray[] = [[ -1, 1, 1 ], [ 1, 1, 2 ]];
   let map: Map = ["...", "..."]
   rays.filter((ray: Ray) => inBounds(ray, map)) //=> [[1, 1, 2]]
 */
@@ -16,19 +21,19 @@ function inBounds(ray: Ray, map: Map): boolean {
 }
 
 const reflects: {[k: string]: {[k: string]: Dir[]}} = {
-  '/': {0: [1], 1: [0], 2: [3], 3: [2]},
-  '\\': {0: [3], 1: [2], 2: [1], 3: [0]},
-  '-': {0: [1, 3], 2: [1, 3]},
-  '|': {1: [0, 2], 3: [0, 2]},
+  '/':  {[Dir.up]: [Dir.right], [Dir.right]: [Dir.up], [Dir.down]: [Dir.left], [Dir.left]: [Dir.down]},
+  '\\': {[Dir.up]: [Dir.left], [Dir.right]: [Dir.down], [Dir.down]: [Dir.right], [Dir.left]: [Dir.up]},
+  '-':  {[Dir.up]: [Dir.left, Dir.right], [Dir.down]: [Dir.left, Dir.right]},
+  '|':  {[Dir.left]: [Dir.up, Dir.down], [Dir.right]: [Dir.up, Dir.down]}
 }
 
 function shift(ray: Ray): Ray {
   let [y, x, dir] = ray;
   switch(dir) {
-    case 0: return [y-1, x, dir];
-    case 1: return [y, x+1, dir];
-    case 2: return [y+1, x, dir];
-    case 3: return [y, x-1, dir];
+    case Dir.up: return [y-1, x, dir];
+    case Dir.right: return [y, x+1, dir];
+    case Dir.down: return [y+1, x, dir];
+    case Dir.left: return [y, x-1, dir];
   }
 }
 
@@ -45,21 +50,20 @@ function step(ray: Ray, map: Map): Ray[] {
 function passed(energized: Energized, ray: Ray): boolean {
   let [y, x, dir] = ray;
   let key = [y, x].toString();
-  return energized[key]?.[dir]
+  return (energized[key] & dir) != 0
 }
 
 function updateEnergized(energized: Energized, rays: Ray[]): void {
   rays.forEach(ray => {
     let [y, x, dir] = ray;
     let key = [y, x].toString();
-    energized[key] ||= {};
-    energized[key][dir] = true;
+    energized[key] |= dir;
   })
 }
 
 /**
  let energized: Energized = {}
- updateEnergized(energized, [[0,0,1], [0,1,1]])
+ updateEnergized(energized, [[0,0, Dir.up], [0,1, Dir.up]])
  countEnergized(energized) //=> 2
 */
 function countEnergized(energized: Energized): number {
@@ -68,7 +72,7 @@ function countEnergized(energized: Energized): number {
 
 function iterate(map: Map): Energized {
   let energized: Energized = {};
-  let rays: Ray[] = [[0, 0, 1]];
+  let rays: Ray[] = [[0, 0, Dir.right]];
   while (rays.length > 0) {
     rays = rays.filter(ray => !passed(energized, ray));
     updateEnergized(energized, rays);
