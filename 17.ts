@@ -82,7 +82,7 @@ function removeFinished(crucs: Cruc[], map: Map, temp: number): [Cruc[], number]
   return [others, newTemp]
 }
 
-async function run(map: Map) {
+async function run(map: Map, verbose: boolean = false) {
   let crucs: Cruc[] = [
     {x: 0, y: 0, dir: Dir.r, steps: 0, temp: 0},
     {x: 0, y: 0, dir: Dir.d, steps: 0, temp: 0}
@@ -96,29 +96,34 @@ async function run(map: Map) {
     crucs = crucs.flatMap(cruc => step(cruc, map));
     [crucs, temp] = removeFinished(crucs, map, temp);
     crucs = updateVisited(crucs, visited)
-    //console.log();
-    //console.log(temp, crucs.length);
-    //show(map, crucs)
-    //await ask("next?")
+    if (verbose) {
+      console.log();
+      console.log(temp, crucs.length);
+      show(map, crucs, visited)
+      await ask("next?")
+    }
   }
 
   return temp
 }
 
-function show(map: Map, crucs: Cruc[]): void {
-  const sym = {[Dir.u]: "^", [Dir.r]: ">", [Dir.d]: "v", [Dir.l]: "<" };
-  crucs.forEach(cruc => { if (cruc.x == 0 && cruc.y == 0) console.log(cruc)});
-  let mapped = Object.fromEntries(crucs.map(cruc => [[cruc.y, cruc.x].toString(), "\x1b[1;32m" + sym[cruc.dir]+ "\x1b[0m"]));
+function show(map: Map, crucs: Cruc[], visited: Visited): void {
+  let green = "\x1b[1;32m";
+  let none = "\x1b[0m";
+  let mapped = Object.fromEntries(
+    Object.entries(
+      _.groupBy(crucs, cruc => [cruc.y, cruc.x].toString())
+    ).map(([key, crucs]) => [key, green + Math.min(...crucs.map(cruc => cruc.temp)).toString().padStart(4, " ") + none]));
+  let mapVisited = Object.fromEntries(
+    Object.entries(
+      _.groupBy(Object.entries(visited), ([key, _temp]) => key.split(",").slice(0, 2).join(","))
+    ).map(([key, pairs]) => [key, Math.min(...pairs.map(([_key, temp]) => temp)).toString().padStart(4, " ")])
+  );
   for (let y = 0; y < map.length; y++) {
     let line = "";
     for (let x = 0; x < map[0].length; x++) {
-      let cruc = mapped[[y, x].toString()];
-      if (cruc) {
-        line += cruc;
-      }
-      else {
-        line += map[y][x]
-      }
+      let key = [y, x].toString();
+      line += mapped[key] ?? mapVisited[key] ?? "    ";
     }
     console.log(line)
   }
@@ -140,7 +145,7 @@ if (require.main === module) {
   fs.promises.readFile(process.argv[2], 'utf-8')
     .then((content) => content.slice(0, -1).split("\n"))
     .then((lines) => lines.map(line => line.split("").map(n => parseInt(n))))
-    .then(run)
+    .then(map => run(map, process.argv[3] == "-v"))
     .then(console.log)
     .catch(console.error)
 }
