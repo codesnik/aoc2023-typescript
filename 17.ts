@@ -69,7 +69,9 @@ function updateVisited(crucs: Cruc[], visited: Visited): Cruc[] {
       return false
     }
     else {
-      visited[key] = cruc.temp;
+      _.range(cruc.steps, 4).forEach(step => {
+        visited[ [cruc.y, cruc.x, cruc.dir, step].toString() ] = cruc.temp
+      })
       return true
     }
   })
